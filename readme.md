@@ -132,6 +132,7 @@ if you find our code helpful for your research, please consider citing:
 ## Acknowledgement
 Thanks to everyone who makes their code and models available. In particular,
 
+- [Multinomial Diffusion](https://github.com/ehoogeboom/multinomial_diffusion)
 - [Taming Transformer](https://github.com/CompVis/taming-transformers)
 - [Improved DDPM](https://github.com/openai/improved-diffusion)
 - [Clip](https://github.com/openai/CLIP)
