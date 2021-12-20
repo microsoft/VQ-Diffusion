@@ -229,7 +229,6 @@ class Solver(object):
         else:
             batch = batch[0].cuda()
         for op_sc_n, op_sc in self.optimizer_and_scheduler.items():
-            # import pdb; pdb.set_trace()
             if phase == 'train':
                 # check if this optimizer and scheduler is valid in this iteration and epoch
                 if op_sc['start_iteration'] > self.last_iter:
@@ -450,9 +449,9 @@ class Solver(object):
 
             # sample
             if self.sample_iterations > 0 and (self.last_iter + 1) % self.sample_iterations == 0:
-                print("save model here")
-                self.save(force=True)
-                print("save model done")
+                # print("save model here")
+                # self.save(force=True)
+                # print("save model done")
                 self.model.eval()
                 self.sample(batch, phase='train', step_type='iteration')
                 self.model.train()
@@ -537,25 +536,7 @@ class Solver(object):
         self.logger.log_info('{}: global rank {}: start training...'.format(self.args.name, self.args.global_rank), check_primary=False)
         
         for epoch in range(start_epoch, self.max_epochs):
-            try:
-                self.logger.log_info('diffusion_acc_list is ')
-                self.logger.log_info(self.model.module.transformer.diffusion_acc_list)
-                self.logger.log_info('diffusion_keep_list is ')
-                self.logger.log_info(self.model.module.transformer.diffusion_keep_list)
-                self.logger.log_info('quantize_zero_number is ')
-                self.logger.log_info(self.model.module.transformer.quantize_zero_number)
-            except:
-                self.logger.log_info(' diffusion_acc_list or diffusion_keep_list or quantize_zero_number is not provided')
-            else:
-                pass
-
             self.train_epoch()
-            print("training done")
             self.save(force=True)
-            print("save done")
             self.validate_epoch()
-            print("validate done")
-
-            
-            
 

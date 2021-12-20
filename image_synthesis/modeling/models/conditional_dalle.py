@@ -80,17 +80,6 @@ class C_DALLE(nn.Module):
         input.update(self.prepare_content(batch))
         return input
 
-    def half(self):
-
-        for c in self.children():
-            if isinstance(c, OpenAIDiscreteVAE):
-                c.half
-            else:
-                c._apply(lambda t: t.half() if t.is_floating_point() else t)
-
-        return self
-
-
     def predict_start_with_truncation(self, func, sample_type):
         if sample_type[-1] == 'p':
             truncation_k = int(sample_type[:-1].replace('top', ''))
@@ -200,7 +189,6 @@ class C_DALLE(nn.Module):
         clip = None,
         temperature = 1.,
         return_rec = True,
-        # filter_ratio = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], # the ratios to filter the logits before sampling the logits
         filter_ratio = [0, 0.5, 1.0],
         content_ratio = [1], # the ratio to keep the encoded content tokens
         return_att_weight=False,
@@ -271,11 +259,6 @@ class C_DALLE(nn.Module):
         name='none',
         **kwargs
     ):
-        # start_time = time.time()
         input = self.prepare_input(batch)
-        # prepare_time = time.time()
         output = self.transformer(input, **kwargs)
-        # end_time = time.time()
-        # print("prepare input time is " + str(round(prepare_time-start_time, 3)))
-        # print("forward transformer time is " + str(round(end_time-prepare_time, 3)))
         return output

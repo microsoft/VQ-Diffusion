@@ -15,7 +15,6 @@ def logits_top_k(logits, filter_ratio = 0.5, minimum=1, pad_value=None):
         k = max(int((1 - filter_ratio) * num_logits), minimum)
     else:
         k = max(int(filter_ratio), minimum)
-    # import pdb; pdb.set_trace()
     val, ind = torch.topk(input=logits, k=k, dim=-1)
     if pad_value is None:
         pad_value = float('-inf')
@@ -158,55 +157,3 @@ def gen_attention_mask(H, W, type='full', causal=True, condition_seq_len=0, **kw
         mask *= causal_mask
     
     return mask
-
-
-if __name__ == '__main__':
-
-    import cv2
-    from PIL import Image
-    import numpy as np
-    from image_synthesis.data.utils.util import generate_mask_based_on_landmark, generate_stroke_mask
-
-    mask = generate_stroke_mask((256, 256))
-
-    mask_t = torch.tensor(mask).unsqueeze(dim=0).permute(0, 3, 1, 2).float() # 1 x c x h x w
-
-    size = list((int(s/8) for s in mask_t.shape[-2:]))
-
-    mask_resize = pixel_unshuffle(mask_t, size) # 1 x 3 x size[0] x size[1]
-    mask_resize = pixel_shuffle(mask_resize, mask_t.shape[-2:])
-    mask_resize = mask_resize[0].permute(1, 2, 0).numpy()
-
-
-    mask = Image.fromarray((mask[:,:,0] * 255).astype(np.uint8))
-    mask.show()
-    mask_resize = Image.fromarray((mask_resize[:,:,0]*255).astype(np.uint8))
-    mask_resize.show()
-
-
-    # mask = cv2.imread('data/imagenet/val/n01440764/ILSVRC2012_val_00003014.JPEG')
-    # mask = cv2.resize(mask, (256, 256))
-
-
-    # mask_t = torch.tensor(mask).unsqueeze(dim=0).permute(0, 3, 1, 2).float() # 1 x c x h x w
-    # size = list((int(s/8) for s in mask_t.shape[-2:]))
-
-    # mask_resize = pixel_unshuffle(mask_t, size) # 1 x 3 x size[0] x size[1]
-    # mask_resize = pixel_shuffle(mask_resize, mask_t.shape[-2:])
-    # mask_resize = mask_resize[0].permute(1, 2, 0).numpy()
-
-    # print('diff: ', np.sum(np.abs(mask - mask_resize)))
-
-
-    # mask = Image.fromarray((mask[:, :, ::-1]).astype(np.uint8))
-    # mask.show()
-    # mask_resize = Image.fromarray((mask_resize[:, :,::-1]).astype(np.uint8))
-    # mask_resize.show()
-
-
-
-
-
-
-
-

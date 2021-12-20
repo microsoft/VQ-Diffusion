@@ -74,15 +74,11 @@ class DiffusionTransformer(nn.Module):
     ):
         super().__init__()
 
-        # self.content_emb = instantiate_from_config(content_emb_config)
         if condition_emb_config is None:
-            # share the condition embed with content embed
             self.condition_emb = None
-            # assert not predict_condition, 'If want to predict condition token, please provide condition embed config'
         else:
             # for condition and config, we learn a seperate embedding
             self.condition_emb = instantiate_from_config(condition_emb_config)
-            # assert self.condition_emb.embed_dim == self.content_emb.embed_dim
             self.condition_dim = self.condition_emb.embed_dim
        
         transformer_config['params']['diffusion_step'] = diffusion_step
@@ -91,7 +87,6 @@ class DiffusionTransformer(nn.Module):
         self.content_seq_len = transformer_config['params']['content_seq_len']
         self.amp = False
 
-        ####################################################################################################################
         self.num_classes = self.transformer.content_emb.num_embed
         self.loss_type = 'vb_stochastic'
         self.shape = transformer_config['params']['content_seq_len']
@@ -305,7 +300,7 @@ class DiffusionTransformer(nn.Module):
             same_rate = (xt_1_recon[index] == xt_recon[index]).sum().cpu()/xt_recon.size()[1]
             self.diffusion_keep_list[this_t] = same_rate.item()*0.1 + self.diffusion_keep_list[this_t]*0.9
 
-        # compute log_true_prob now / Line 278
+        # compute log_true_prob now 
         log_true_prob = self.q_posterior(log_x_start=log_x_start, log_x_t=log_xt, t=t)
         kl = self.multinomial_kl(log_true_prob, log_model_prob)
         mask_region = (xt == self.num_classes-1).float()
@@ -423,7 +418,7 @@ class DiffusionTransformer(nn.Module):
         sample_image = input['content_token'].type_as(input['content_token'])
         # cont_emb = self.content_emb(sample_image)
 
-        if self.condition_emb is not None:  # do this
+        if self.condition_emb is not None:
             with autocast(enabled=False):
                 with torch.no_grad():
                     cond_emb = self.condition_emb(input['condition_token']) # B x Ld x D   #256*1024
@@ -553,7 +548,7 @@ class DiffusionTransformer(nn.Module):
         if content_token != None:
             sample_image = input['content_token'].type_as(input['content_token'])
 
-        if self.condition_emb is not None:  # do this
+        if self.condition_emb is not None:
             with torch.no_grad():
                 cond_emb = self.condition_emb(input['condition_token']) # B x Ld x D   #256*1024
             cond_emb = cond_emb.float()

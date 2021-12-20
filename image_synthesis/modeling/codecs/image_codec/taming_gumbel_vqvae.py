@@ -89,18 +89,6 @@ class TamingFFHQVQVAE(BaseCodec):
             model = model.first_stage_model
         return model
 
-    def half(self):             # not sure if it's right
-        """
-        overwrite this function
-        """
-        from dall_e.utils import Conv2d
-        for n, m in self.named_modules():
-            if isinstance(m, Conv2d) and m.use_float16:
-                print(n)
-                m._apply(lambda t: t.half() if t.is_floating_point() else t)
-
-        return self
-
     @property
     def device(self):
         # import pdb; pdb.set_trace()
@@ -180,19 +168,6 @@ class TamingVQVAE(BaseCodec):
         model.load_state_dict(sd, strict=False)
         return model
 
-
-    def half(self):             # not sure if it's right
-        """
-        overwrite this function
-        """
-        from dall_e.utils import Conv2d
-        for n, m in self.named_modules():
-            if isinstance(m, Conv2d) and m.use_float16:
-                print(n)
-                m._apply(lambda t: t.half() if t.is_floating_point() else t)
-
-        return self
-
     @property
     def device(self):
         # import pdb; pdb.set_trace()
@@ -270,19 +245,6 @@ class TamingGumbelVQVAE(BaseCodec):
         sd = torch.load(ckpt_path, map_location="cpu")["state_dict"]
         model.load_state_dict(sd, strict=False)
         return model
-
-
-    def half(self):             # not sure if it's right
-        """
-        overwrite this function
-        """
-        from dall_e.utils import Conv2d
-        for n, m in self.named_modules():
-            if isinstance(m, Conv2d) and m.use_float16:
-                print(n)
-                m._apply(lambda t: t.half() if t.is_floating_point() else t)
-
-        return self
 
     @property
     def device(self):

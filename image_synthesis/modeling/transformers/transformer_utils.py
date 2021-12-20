@@ -489,8 +489,6 @@ class Condition2ImageTransformer(nn.Module):
 
         self.apply(self._init_weights)
 
-    ######################################################################################################################
-
     def _init_weights(self, module):
         if isinstance(module, (nn.Linear, nn.Embedding)):
             module.weight.data.normal_(mean=0.0, std=0.02)
@@ -630,8 +628,6 @@ class UnCondition2ImageTransformer(nn.Module):
         self.content_seq_len = content_seq_len
 
         self.apply(self._init_weights)
-
-    ######################################################################################################################
 
     def _init_weights(self, module):
         if isinstance(module, (nn.Linear, nn.Embedding)):

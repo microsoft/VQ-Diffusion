@@ -85,15 +85,6 @@ class DALLE(nn.Module):
         input.update(self.prepare_content(batch))
         return input
 
-    def half(self):
-        for c in self.children():
-            if isinstance(c, OpenAIDiscreteVAE):
-                c.half
-            else:
-                c._apply(lambda t: t.half() if t.is_floating_point() else t)
-
-        return self
-
     def p_sample_with_truncation(self, func, sample_type):
         truncation_rate = float(sample_type.replace('q', ''))
         def wrapper(*args, **kwards):

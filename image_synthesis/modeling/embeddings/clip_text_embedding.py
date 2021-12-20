@@ -59,8 +59,6 @@ class CLIPTextEmbedding(BaseEmbedding):
             x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection # [batch_size, transformer.width]
             if self.keep_seq_len_dim:
                 x = x.unsqueeze(dim=1) # [batch_size, 1, transformer.width]
-        # concate itself to enlarge the dimension
-        # x = torch.cat((x,x), dim=2)
         return x
 
 

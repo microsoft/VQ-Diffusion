@@ -54,5 +54,3 @@ class Cub200Dataset(Dataset):
         }
         
         return data
-        
-            

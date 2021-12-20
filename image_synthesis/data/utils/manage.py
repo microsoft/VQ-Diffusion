@@ -37,8 +37,6 @@ class ThreadPool:
         target=func_wrapper(func)
         # hold_thread=subprocess.Popen("exec "+"python /mnt/blob/datasets/holder.py",shell=True,stdout=subprocess.DEVNULL)
         time.sleep(1)
-        # os.system("nvidia-smi")
-        # print(self.n)
         print(f"start loading queue {queue.qsize()}")
         logging.info(f"start loading queue {queue.qsize()}")
         for i in range(self.n):            
@@ -153,7 +151,7 @@ class ZipManager:
 
     def get(self, name):
         if not self._init:
-            self.initialize(close=False)  # 这一步很关键。。。# https://discuss.pytorch.org/t/dataloader-stucks/14087/3
+            self.initialize(close=False)  # https://discuss.pytorch.org/t/dataloader-stucks/14087/3
         byteflow = self.zip_fd.read(name)
         return self.decode_func(byteflow)
 
@@ -343,10 +341,10 @@ class MultipleLMDBManager:
             self.managers[i] = Manager(file,self.data_type,prefix=prefix,load=False)
             print(file, " done")
 
-        ThreadPool(4).run(preload,self.managers.values()) # 预加载队列
+        ThreadPool(4).run(preload,self.managers.values()) 
         
 
-        if self.get_key: # 大部分的db都不需要获取key，因为key是从别的地方来的
+        if self.get_key:
             self._keys=[]
             for index,manager in self.managers.items():
                 file=manager.db_path
@@ -419,8 +417,3 @@ class MetaDB:
             return val
 
 
-# if __name__=="__main__":
-#     from tqdm import tqdm
-#     db=MultipleLMDBManager(["glob-/mnt/blob/LargeScaleFace/DATASET/LAION-400M/text_kvs/*.kv|laion"],"text")
-#     for key in tqdm(db.keys):
-#         db.get(key)

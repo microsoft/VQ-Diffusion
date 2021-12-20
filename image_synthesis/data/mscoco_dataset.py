@@ -44,5 +44,3 @@ class CocoDataset(Dataset):
         }
         
         return data
-        
-            

@@ -212,11 +212,6 @@ class UC_DALLE(nn.Module):
         name='none',
         **kwargs
     ):
-        # start_time = time.time()
         input = self.prepare_input(batch)
-        # prepare_time = time.time()
         output = self.transformer(input, **kwargs)
-        # end_time = time.time()
-        # print("prepare input time is " + str(round(prepare_time-start_time, 3)))
-        # print("forward transformer time is " + str(round(end_time-prepare_time, 3)))
         return output
