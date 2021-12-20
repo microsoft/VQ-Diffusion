@@ -1,0 +1,79 @@
+model:
+  params:
+    condition_codec_config:
+      params:
+        add_start_and_end: true
+        clip_embedding: false
+        context_length: 77
+        pad_value: 0
+        tokenizer_config:
+          params:
+            end_idx: 49152
+          target: image_synthesis.modeling.modules.clip.simple_tokenizer.SimpleTokenizer
+        with_mask: true
+      target: image_synthesis.modeling.codecs.text_codec.tokenize.Tokenize
+    condition_info:
+      key: text
+    content_codec_config:
+      params:
+        ckpt_path: OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.ckpt
+        config_path: OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages.yaml
+        mapping_path: ./help_folder/statistics/taming_vqvae_2887.pt
+        num_tokens: 8192
+        quantize_number: 2887
+        token_shape:
+        - 32
+        - 32
+        trainable: false
+      target: image_synthesis.modeling.codecs.image_codec.taming_gumbel_vqvae.TamingGumbelVQVAE
+    content_info:
+      key: image
+    diffusion_config:
+      params:
+        adaptive_auxiliary_loss: true
+        alpha_init_type: alpha1
+        auxiliary_loss_weight: 0.0005
+        condition_emb_config:
+          params:
+            additional_last_embedding: false
+            clip_name: ViT-B/32
+            embed_dim: 512
+            keep_seq_len_dim: false
+            normalize: true
+            num_embed: 49408
+            pick_last_embedding: false
+          target: image_synthesis.modeling.embeddings.clip_text_embedding.CLIPTextEmbedding
+        content_emb_config:
+          params:
+            embed_dim: 1024
+            num_embed: 2887
+            pos_emb_type: embedding
+            spatial_size: !!python/tuple
+            - 32
+            - 32
+            trainable: true
+          target: image_synthesis.modeling.embeddings.dalle_mask_image_embedding.DalleMaskImageEmbedding
+        diffusion_step: 100
+        mask_weight:
+        - 1
+        - 1
+        transformer_config:
+          params:
+            attn_pdrop: 0.0
+            attn_type: selfcross
+            block_activate: GELU2
+            condition_dim: 512
+            condition_seq_len: 77
+            content_seq_len: 1024
+            content_spatial_size:
+            - 32
+            - 32
+            mlp_hidden_times: 4
+            n_embd: 1024
+            n_head: 16
+            n_layer: 19
+            resid_pdrop: 0.0
+            timestep_type: adalayernorm
+          target: image_synthesis.modeling.transformers.transformer_utils.Text2ImageTransformer
+      target: image_synthesis.modeling.transformers.diffusion_transformer.DiffusionTransformer
+  target: image_synthesis.modeling.models.dalle.DALLE

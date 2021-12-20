@@ -1,0 +1,64 @@
+model:
+  params:
+    condition_info:
+      key: label
+    content_codec_config:
+      params:
+        ckpt_path: OUTPUT/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.ckpt
+        config_path: OUTPUT/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.yaml
+        mapping_path: ./help_folder/statistics/taming_vqvae_974.pt
+        num_tokens: 16384
+        quantize_number: 974
+        token_shape:
+        - 16
+        - 16
+        trainable: false
+      target: image_synthesis.modeling.codecs.image_codec.taming_gumbel_vqvae.TamingVQVAE
+    content_info:
+      key: image
+    diffusion_config:
+      params:
+        adaptive_auxiliary_loss: true
+        alpha_init_type: alpha1
+        auxiliary_loss_weight: 0.001
+        condition_emb_config:
+          params:
+            embed_dim: 512
+            identity: true
+            num_embed: 1000
+          target: image_synthesis.modeling.embeddings.class_embedding.ClassEmbedding
+        content_emb_config:
+          params:
+            embed_dim: 512
+            num_embed: 974
+            pos_emb_type: embedding
+            spatial_size: !!python/tuple
+            - 32
+            - 32
+            trainable: true
+          target: image_synthesis.modeling.embeddings.dalle_mask_image_embedding.DalleMaskImageEmbedding
+        diffusion_step: 100
+        mask_weight:
+        - 1
+        - 1
+        transformer_config:
+          params:
+            attn_pdrop: 0.0
+            attn_type: selfcondition
+            block_activate: GELU2
+            class_number: 1000
+            class_type: adalayernorm
+            content_seq_len: 256
+            content_spatial_size:
+            - 16
+            - 16
+            mlp_hidden_times: 4
+            mlp_type: conv_mlp
+            n_embd: 512
+            n_head: 16
+            n_layer: 24
+            resid_pdrop: 0.0
+            timestep_type: adalayernorm
+          target: image_synthesis.modeling.transformers.transformer_utils.Condition2ImageTransformer
+      target: image_synthesis.modeling.transformers.diffusion_transformer.DiffusionTransformer
+  target: image_synthesis.modeling.models.conditional_dalle.C_DALLE

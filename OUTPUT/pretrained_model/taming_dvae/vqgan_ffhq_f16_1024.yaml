@@ -1,0 +1,38 @@
+model:
+  base_learning_rate: 0.0625
+  target: image_synthesis.taming.models.cond_transformer.Net2NetTransformer
+  params:
+    cond_stage_config: __is_unconditional__
+    first_stage_key: image
+    transformer_config:
+      target: image_synthesis.taming.modules.transformer.mingpt.GPT
+      params:
+        vocab_size: 1024
+        block_size: 256
+        n_layer: 24
+        n_head: 16
+        n_embd: 1664
+    first_stage_config:
+      target: image_synthesis.taming.models.vqgan.VQModel
+      params:
+        embed_dim: 256
+        n_embed: 1024
+        ddconfig:
+          double_z: false
+          z_channels: 256
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult:
+          - 1
+          - 1
+          - 2
+          - 2
+          - 4
+          num_res_blocks: 2
+          attn_resolutions:
+          - 16
+          dropout: 0.0
+        lossconfig:
+          target: image_synthesis.taming.modules.losses.vqperceptual.DummyLoss
