@@ -4,7 +4,7 @@ model:
       key: label
     content_codec_config:
       params:
-        ckpt_path: OUTPUT/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.ckpt
+        ckpt_path: OUTPUT/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.pth
         config_path: OUTPUT/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.yaml
         mapping_path: ./help_folder/statistics/taming_vqvae_974.pt
         num_tokens: 16384

@@ -11,7 +11,7 @@ model:
         trainable: False
         token_shape: [32, 32]
         config_path: 'OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages.yaml'
-        ckpt_path: 'OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.ckpt'
+        ckpt_path: 'OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.pth'
         num_tokens: 8192
         quantize_number: 2887
         mapping_path: './help_folder/statistics/taming_vqvae_2887.pt'

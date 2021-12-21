@@ -9,7 +9,7 @@ model:
         trainable: False
         token_shape: [16, 16]
         config_path: 'OUTPUT/pretrained_model/taming_dvae/vqgan_ffhq_f16_1024.yaml'
-        ckpt_path: 'OUTPUT/pretrained_model/taming_dvae/vqgan_ffhq_f16_1024.ckpt'
+        ckpt_path: 'OUTPUT/pretrained_model/taming_dvae/vqgan_ffhq_f16_1024.pth'
         num_tokens: 1024
         quantize_number: 0
         mapping_path: None

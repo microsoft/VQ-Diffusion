@@ -16,7 +16,7 @@ model:
       key: text
     content_codec_config:
       params:
-        ckpt_path: OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.ckpt
+        ckpt_path: OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.pth
         config_path: OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages.yaml
         mapping_path: ./help_folder/statistics/taming_vqvae_2887.pt
         num_tokens: 8192
