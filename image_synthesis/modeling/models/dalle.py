@@ -1,3 +1,10 @@
+# ------------------------------------------
+# VQ-Diffusion
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+# written By Shuyang Gu
+# ------------------------------------------
+
 import torch
 import math
 from torch import nn

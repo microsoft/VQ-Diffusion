@@ -1,3 +1,10 @@
+# ------------------------------------------
+# VQ-Diffusion
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+# written By Shuyang Gu
+# ------------------------------------------
+
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))

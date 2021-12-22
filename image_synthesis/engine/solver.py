@@ -1,3 +1,10 @@
+# ------------------------------------------
+# VQ-Diffusion
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+# written By Shuyang Gu
+# ------------------------------------------
+
 import os
 import time
 import math
