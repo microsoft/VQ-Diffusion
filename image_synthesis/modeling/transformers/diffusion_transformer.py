@@ -104,7 +104,7 @@ class DiffusionTransformer(nn.Module):
         self.mask_weight = mask_weight
 
         if alpha_init_type == "alpha1":
-            at, bt, ct, att, btt, ctt = alpha_schedule(self.num_timesteps, N=self.num_classes)
+            at, bt, ct, att, btt, ctt = alpha_schedule(self.num_timesteps, N=self.num_classes-1)
         else:
             print("alpha_init_type is Wrong !! ")
 
@@ -141,6 +141,7 @@ class DiffusionTransformer(nn.Module):
 
         self.register_buffer('Lt_history', torch.zeros(self.num_timesteps))
         self.register_buffer('Lt_count', torch.zeros(self.num_timesteps))
+        self.zero_vector = None
 
 
     def multinomial_kl(self, log_prob1, log_prob2):   # compute KL loss on log_prob
@@ -153,9 +154,13 @@ class DiffusionTransformer(nn.Module):
         log_ct = extract(self.log_ct, t, log_x_t.shape)             # ct
         log_1_min_ct = extract(self.log_1_min_ct, t, log_x_t.shape)          # 1-ct
 
-        log_probs = torch.zeros(log_x_t.size()).type_as(log_x_t)
-        log_probs[:,:-1,:] = log_add_exp(log_x_t[:,:-1,:]+log_at, log_bt)
-        log_probs[:,-1:,:] = log_add_exp(log_x_t[:,-1:,:]+log_1_min_ct, log_ct)
+        log_probs = torch.cat(
+            [
+                log_add_exp(log_x_t[:,:-1,:]+log_at, log_bt),
+                log_add_exp(log_x_t[:, -1:, :] + log_1_min_ct, log_ct)
+            ],
+            dim=1
+        )
 
         return log_probs
 
@@ -168,9 +173,13 @@ class DiffusionTransformer(nn.Module):
         log_1_min_cumprod_ct = extract(self.log_1_min_cumprod_ct, t, log_x_start.shape)       # 1-ct~
         
 
-        log_probs = torch.zeros(log_x_start.size()).type_as(log_x_start)
-        log_probs[:,:-1,:] = log_add_exp(log_x_start[:,:-1,:]+log_cumprod_at, log_cumprod_bt)
-        log_probs[:,-1:,:] = log_add_exp(log_x_start[:,-1:,:]+log_1_min_cumprod_ct, log_cumprod_ct)
+        log_probs = torch.cat(
+            [
+                log_add_exp(log_x_start[:,:-1,:]+log_cumprod_at, log_cumprod_bt),
+                log_add_exp(log_x_start[:,-1:,:]+log_1_min_cumprod_ct, log_cumprod_ct)
+            ],
+            dim=1
+        )
 
         return log_probs
 
@@ -187,16 +196,15 @@ class DiffusionTransformer(nn.Module):
         assert out.size()[2:] == x_t.size()[1:]
         log_pred = F.log_softmax(out.double(), dim=1).float()
         batch_size = log_x_t.size()[0]
-        zero_vector = torch.zeros(batch_size, 1, self.content_seq_len).type_as(log_x_t)- 70
-        log_pred = torch.cat((log_pred, zero_vector), dim=1)
+        if self.zero_vector is None or self.zero_vector.shape[0] != batch_size:
+            self.zero_vector = torch.zeros(batch_size, 1, self.content_seq_len).type_as(log_x_t)- 70
+        log_pred = torch.cat((log_pred, self.zero_vector), dim=1)
         log_pred = torch.clamp(log_pred, -70, 0)
 
         return log_pred
 
-    def q_posterior(self, log_x_start, log_x_t, t):            # p_theta(xt_1|xt) = sum(q(xt-1|xt,x0)*p(x0|xt))
+    def q_posterior(self, log_x_start, log_x_t, t):            # p_theta(xt_1|xt) = sum(q(xt-1|xt,x0')*p(x0'))
         # notice that log_x_t is onehot
-        # log(p_theta(xt_1|xt)) = log(q(xt-1|xt,x0)) + log(p(x0|xt))
-        #                       = log(p(x0|xt)) + log(q(xt|xt_1,x0)) + log(q(xt_1|x0)) - log(q(xt|x0))  (*)
         assert t.min().item() >= 0 and t.max().item() < self.num_timesteps
         batch_size = log_x_start.size()[0]
         onehot_x_t = log_onehot_to_index(log_x_t)
@@ -204,15 +212,15 @@ class DiffusionTransformer(nn.Module):
         log_one_vector = torch.zeros(batch_size, 1, 1).type_as(log_x_t)
         log_zero_vector = torch.log(log_one_vector+1.0e-30).expand(-1, -1, self.content_seq_len)
 
-        # log(q(xt|x0))
-        log_qt = self.q_pred(log_x_t, t)                                  
-        log_qt = torch.cat((log_qt[:,:-1,:], log_zero_vector), dim=1)
+        log_qt = self.q_pred(log_x_t, t)                                  # q(xt|x0)
+        # log_qt = torch.cat((log_qt[:,:-1,:], log_zero_vector), dim=1)
+        log_qt = log_qt[:,:-1,:]
         log_cumprod_ct = extract(self.log_cumprod_ct, t, log_x_start.shape)         # ct~
         ct_cumprod_vector = log_cumprod_ct.expand(-1, self.num_classes-1, -1)
-        ct_cumprod_vector = torch.cat((ct_cumprod_vector, log_one_vector), dim=1)
+        # ct_cumprod_vector = torch.cat((ct_cumprod_vector, log_one_vector), dim=1)
         log_qt = (~mask)*log_qt + mask*ct_cumprod_vector
         
-        # log(q(xt|xt_1,x0))
+
         log_qt_one_timestep = self.q_pred_one_timestep(log_x_t, t)        # q(xt|xt_1)
         log_qt_one_timestep = torch.cat((log_qt_one_timestep[:,:-1,:], log_zero_vector), dim=1)
         log_ct = extract(self.log_ct, t, log_x_start.shape)         # ct
@@ -220,12 +228,14 @@ class DiffusionTransformer(nn.Module):
         ct_vector = torch.cat((ct_vector, log_one_vector), dim=1)
         log_qt_one_timestep = (~mask)*log_qt_one_timestep + mask*ct_vector
         
-        q = log_x_start - log_qt    # log(p(x0|xt)/q(xt|x0))
+        # log_x_start = torch.cat((log_x_start, log_zero_vector), dim=1)
+        # q = log_x_start - log_qt
+        q = log_x_start[:,:-1,:] - log_qt
+        q = torch.cat((q, log_zero_vector), dim=1)
         q_log_sum_exp = torch.logsumexp(q, dim=1, keepdim=True)
-        q = q - q_log_sum_exp       # norm(log(p(x0|xt)/q(xt|x0)))  to leverage self.q_pred
-        log_EV_xtmin_given_xt_given_xstart = self.q_pred(q, t-1) + log_qt_one_timestep + q_log_sum_exp  # get (*), last term is re-norm
+        q = q - q_log_sum_exp
+        log_EV_xtmin_given_xt_given_xstart = self.q_pred(q, t-1) + log_qt_one_timestep + q_log_sum_exp
         return torch.clamp(log_EV_xtmin_given_xt_given_xstart, -70, 0)
-
 
     def p_pred(self, log_x, cond_emb, t):             # if x0, first p(x0|xt), than sum(q(xt-1|xt,x0)*p(x0|xt))
         if self.parametrization == 'x0':
@@ -340,7 +350,7 @@ class DiffusionTransformer(nn.Module):
             kl_aux = sum_except_batch(kl_aux)
             kl_aux_loss = mask * decoder_nll + (1. - mask) * kl_aux
             if self.adaptive_auxiliary_loss == True:
-                addition_loss_weight = t/self.num_timesteps + 1.0
+                addition_loss_weight = (1-t/self.num_timesteps) + 1.0
             else:
                 addition_loss_weight = 1.0
 
