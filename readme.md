@@ -1,4 +1,4 @@
-# Vector Quantized Diffusion Model for Text-to-Image Synthesis
+# Vector Quantized Diffusion Model for Text-to-Image Synthesis  (CVPR2022, Oral)
 
 ## Overview
 
