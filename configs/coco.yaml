@@ -128,6 +128,7 @@ dataloader:
       params:
         data_root: /mnt/blob/datasets/MSCOCO_Caption
         phase: train
+        drop_caption_rate: 0.0
         im_preprocessor_config:
           target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor   # ImageNet
           params:

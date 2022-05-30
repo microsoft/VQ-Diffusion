@@ -4,6 +4,7 @@ model:
   params:
     content_info: {key: image}
     condition_info: {key: text}
+    learnable_cf: True
     content_codec_config: 
     # target: image_synthesis.modeling.codecs.image_codec.openai_dvae.OpenAIDiscreteVAE
       target: image_synthesis.modeling.codecs.image_codec.taming_gumbel_vqvae.TamingGumbelVQVAE
@@ -37,6 +38,7 @@ model:
         auxiliary_loss_weight: 5.0e-4
         adaptive_auxiliary_loss: True
         mask_weight: [1, 1]    # the loss weight on mask region and non-mask region
+        learnable_cf: True
 
         transformer_config:
           target: image_synthesis.modeling.transformers.transformer_utils.Text2ImageTransformer
@@ -77,8 +79,8 @@ solver:
   base_lr: 3.0e-6
   adjust_lr: none # not adjust lr according to total batch_size
   max_epochs: 100
-  save_epochs: 1
-  validation_epochs: 99
+  save_epochs: 2
+  validation_epochs: 5
   sample_iterations: epoch  # epoch #30000      # how many iterations to perform sampling once ?
   print_specific_things: True
 
@@ -115,33 +117,30 @@ solver:
         min_lr: 1.0e-6
         threshold: 1.0e-1
         threshold_mode: rel
-        warmup_lr: 4.5e-4 # the lr to be touched after warmup
-        warmup: 5000 
+        warmup_lr: 2.0e-4 # the lr to be touched after warmup
+        warmup: 1000 
 
 dataloader:
   # data_root: data
-  data_root: DATASET
+  data_root: /mnt/blob/datasets/MSCOCO_Caption
   batch_size: 4
-  num_workers: 1
+  num_workers: 4
   train_datasets: # a list of configures, so we can combine several schedulers
-    - target: image_synthesis.data.zip_dataset.ZipImageTextDataset
+    - target: image_synthesis.data.mscoco_dataset.CocoDataset
       params:
-        zip_root_path: gcc/data
-        zip_name_list: CC15M
-        json_file: gcc/Filter_CC15M.json
-        drop_caption_rate: 0.0
+        data_root: /mnt/blob/datasets/MSCOCO_Caption
+        phase: train
+        drop_caption_rate: 0.1
         im_preprocessor_config:
-          target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
+          target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor   # ImageNet
           params:
             size: 256
             phase: train
   validation_datasets:
-    - target: image_synthesis.data.tsv_dataset.TSVImageTextDataset
+    - target: image_synthesis.data.mscoco_dataset.CocoDataset
       params:
-        name: conceptualcaption/val
-        image_tsv_file: ['gcc-val-image.tsv']
-        text_tsv_file: ['gcc-val-text.tsv']
-        text_format: json
+        data_root: /mnt/blob/datasets/MSCOCO_Caption
+        phase: val
         im_preprocessor_config:
           target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
           params:

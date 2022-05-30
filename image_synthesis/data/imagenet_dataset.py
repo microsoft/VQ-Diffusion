@@ -12,7 +12,7 @@ def load_img(filepath):
     return img
 
 class ImageNetDataset(Dataset):
-    def __init__(self, data_root, input_file, phase = 'train', im_preprocessor_config=None):
+    def __init__(self, data_root, input_file, phase = 'train', im_preprocessor_config=None, drop_caption_rate=0.0):
         self.transform = instantiate_from_config(im_preprocessor_config)
         self.root = os.path.join(data_root, phase)
         input_file = os.path.join(data_root, input_file)
@@ -32,6 +32,8 @@ class ImageNetDataset(Dataset):
 
         self.num = len(self.A_paths)
         self.A_size = len(self.A_paths)
+        self.drop_rate = drop_caption_rate
+        self.phase = phase
  
     def __len__(self):
         return self.num
@@ -50,6 +52,6 @@ class ImageNetDataset(Dataset):
         A_label = self.A_labels[index % self.A_size]
         data = {
                 'image': np.transpose(A.astype(np.float32), (2, 0, 1)),
-                'label': A_label,
+                'label': A_label if (self.phase != 'train' or self.drop_rate < 1e-6 or random.random() >= self.drop_rate) else 1000,
                 }
         return data

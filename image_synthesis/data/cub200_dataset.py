@@ -14,7 +14,7 @@ def load_img(filepath):
     return img
 
 class Cub200Dataset(Dataset):
-    def __init__(self, data_root, phase = 'train', im_preprocessor_config=None):
+    def __init__(self, data_root, phase = 'train', im_preprocessor_config=None, drop_caption_rate=0.0):
         self.transform = instantiate_from_config(im_preprocessor_config)
         self.image_folder = os.path.join(data_root, 'images')
         self.root = os.path.join(data_root, phase)
@@ -35,6 +35,9 @@ class Cub200Dataset(Dataset):
 
         print("load caption file done")
 
+        self.drop_rate = drop_caption_rate
+        self.phase = phase
+
 
     def __len__(self):
         return self.num
@@ -50,7 +53,7 @@ class Cub200Dataset(Dataset):
         
         data = {
                 'image': np.transpose(image.astype(np.float32), (2, 0, 1)),
-                'text': caption,
+                'text': caption if (self.phase != 'train' or self.drop_rate < 1e-6 or random.random() >= self.drop_rate) else '',
         }
         
         return data

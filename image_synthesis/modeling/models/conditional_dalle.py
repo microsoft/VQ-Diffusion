@@ -22,12 +22,15 @@ class C_DALLE(nn.Module):
         *,
         content_info={'key': 'image'},
         condition_info={'key': 'label'},
+        guidance_scale=1.0,
+        learnable_cf=False,
         content_codec_config,
         diffusion_config
     ):
         super().__init__()
         self.content_info = content_info
         self.condition_info = condition_info
+        self.guidance_scale = guidance_scale
         self.content_codec = instantiate_from_config(content_codec_config)
         self.transformer = instantiate_from_config(diffusion_config)
         self.truncation_forward = False
@@ -150,8 +153,21 @@ class C_DALLE(nn.Module):
         
         content_token = None
 
+        guidance_scale = self.guidance_scale
+        cf_cond_emb = torch.ones(len(batch['label']) * replicate).to(self.device) * 1000
+
+        def cf_predict_start(log_x_t, cond_emb, t):
+            log_x_recon = self.transformer.predict_start(log_x_t, cond_emb, t)[:, :-1]
+            if abs(guidance_scale - 1) < 1e-3:
+                return torch.cat((log_x_recon, self.transformer.zero_vector), dim=1)
+            cf_log_x_recon = self.transformer.predict_start(log_x_t, cf_cond_emb.type_as(cond_emb), t)[:, :-1]
+            log_new_x_recon = cf_log_x_recon + guidance_scale * (log_x_recon - cf_log_x_recon)
+            log_new_x_recon -= torch.logsumexp(log_new_x_recon, dim=1, keepdim=True)
+            log_new_x_recon = log_new_x_recon.clamp(-70, 0)
+            log_pred = torch.cat((log_new_x_recon, self.transformer.zero_vector), dim=1)
+            return log_pred
         if sample_type.split(',')[0][:3] == "top" and self.truncation_forward == False:
-            self.transformer.predict_start = self.predict_start_with_truncation(self.transformer.predict_start, sample_type.split(',')[0])
+            self.transformer.cf_predict_start = self.predict_start_with_truncation(cf_predict_start, sample_type.split(',')[0])
             self.truncation_forward = True
 
         trans_out = self.transformer.sample(condition_token=condition['condition_token'],

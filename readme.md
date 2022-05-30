@@ -1,8 +1,8 @@
-# Vector Quantized Diffusion Model for Text-to-Image Synthesis  (CVPR2022, Oral)
+# VQ-Diffusion (CVPR2022, Oral) and <br> Improved VQ-Diffusion
 
 ## Overview
 
-This is the official repo for the paper: [Vector Quantized Diffusion Model for Text-to-Image Synthesis](https://arxiv.org/pdf/2111.14822.pdf).
+This is the official repo for the paper: [Vector Quantized Diffusion Model for Text-to-Image Synthesis](https://arxiv.org/pdf/2111.14822.pdf) and [Improved Vector Quantized Diffusion Models]().
 
 The code is the same as https://github.com/cientgu/VQ-Diffusion, some issues that have been raised can refer to it.
 
@@ -76,26 +76,68 @@ bash install_req.sh
 ```
 
 ## Pretrained Model
-We release four text-to-image pretrained model, trained on [Conceptual Caption](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/CC_pretrained.pth?sv=2019-12-12&st=2021-12-18T05%3A39%3A41Z&se=2028-12-19T05%3A39%3A00Z&sr=b&sp=r&sig=o6mT3jVHjJvmmwmWqt3jWv35tBlM%2BpMjf3XmlAS7osI%3D), [MSCOCO](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/coco_pretrained.pth?sv=2019-12-12&st=2021-12-18T05%3A40%3A15Z&se=2028-12-19T05%3A40%3A00Z&sr=b&sp=r&sig=RCzwxUEw21xagqqAvpM8dIyO4ZK1s0Pkt3uc7R1WHx4%3D), [CUB200](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/cub_pretrained.pth?sv=2019-12-12&st=2021-12-18T05%3A40%3A44Z&se=2028-12-19T05%3A40%3A00Z&sr=b&sp=r&sig=0BuaBa1Fro6jvnHQ5zAYiY0ecgu7PEMs%2BK7EtqmjL1M%3D), and [LAION-human](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/human_pretrained.pth?sv=2019-12-12&st=2021-12-18T05%3A41%3A14Z&se=2028-12-19T05%3A41%3A00Z&sr=b&sp=r&sig=tK%2BCuX9jpikRmGKg4lvx2MBOvU2JRwu7sq9pKNAenh4%3D) datasets. Also, we release the [ImageNet](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/imagenet_pretrained.pth?sv=2019-12-12&st=2021-12-18T05%3A42%3A24Z&se=2028-12-19T05%3A42%3A00Z&sr=b&sp=r&sig=TOS5fddB5vSGKTLBsPMC5LhpyWRbZTlQKeIJrlQmiyg%3D) pretrained model, and provide the [CLIP](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/ViT-B-32.pt?sv=2019-12-12&st=2021-12-18T05%3A38%3A59Z&se=2028-03-19T05%3A38%3A00Z&sr=b&sp=r&sig=vjKexxaBROiGlS1iUkU7MzC0pMFjJBqSffj0SZCtVw0%3D) pretrained model for convenient. These should be put under OUTPUT/pretrained_model/ .
+We release four text-to-image pretrained model, trained on [Conceptual Caption](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/CC_pretrained.pth?sv=2019-12-12&st=2022-03-09T01%3A55%3A06Z&se=2028-04-10T01%3A55%3A00Z&sr=b&sp=r&sig=KOklHEXv2R3cw64BQv2XmLst2pocejAZEGsxSR%2BkMDI%3D), [MSCOCO](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/coco_pretrained.pth?sv=2019-12-12&st=2022-03-09T01%3A56%3A12Z&se=2028-03-10T01%3A56%3A00Z&sr=b&sp=r&sig=1%2B9tk%2FQVOtDUn81gBDLfxtvR8lbHO0WwxdvQwO7SfMo%3D), [CUB200](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/cub_pretrained.pth?sv=2019-12-12&st=2022-03-09T01%3A56%3A38Z&se=2028-03-10T01%3A56%3A00Z&sr=b&sp=r&sig=LCVsTdNdlyTONgNuQeYJgrg%2BeWHLubD%2FSfwbv3z%2B5bI%3D), and [LAION-human](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/human_pretrained.pth?sv=2019-12-12&st=2022-03-09T01%3A56%3A57Z&se=2028-03-10T01%3A56%3A00Z&sr=b&sp=r&sig=Y%2BAxlxTQfJcUIK8GZxcDRmRixaNZgUKKxBXkOKS%2FNyg%3D) datasets. Also, we release the [ImageNet](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/imagenet_pretrained.pth?sv=2019-12-12&st=2022-03-09T01%3A57%3A25Z&se=2028-03-10T01%3A57%3A00Z&sr=b&sp=r&sig=QdrjMT7B2K3W1Vk6spjzWpFLGCTTVp5cziNp3qEHpxk%3D) pretrained model, and provide the [CLIP](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/ViT-B-32.pt?sv=2019-12-12&st=2022-03-09T01%3A57%3A52Z&se=2028-04-10T01%3A57%3A00Z&sr=b&sp=r&sig=bj5P0BbkreoGdbjDK4sZ5tis%2BwltrVAiN9DQdmzHpEE%3D) pretrained model for convenient. These should be put under OUTPUT/pretrained_model/ .
 These pretrained model file may be large because they are training checkpoints, which contains gradient information, optimizer information, ema model and others.
 
-Besides, we provide the VQVAE models on [FFHQ](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/taming_dvae/vqgan_ffhq_f16_1024.pth?sv=2019-12-12&st=2021-12-21T04%3A27%3A57Z&se=2028-12-22T04%3A27%3A00Z&sr=b&sp=r&sig=zmHBBWw81qMgtYg8fFU1ivFp0iBRky17hHxiRYy%2BaJ8%3D), [OpenImages](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.pth?sv=2019-12-12&st=2021-12-21T04%3A27%3A16Z&se=2028-12-22T04%3A27%3A00Z&sr=b&sp=r&sig=1emEQtO9hxA2L1%2FnLRf5NsV327keGAZKBddNabG3whM%3D), and [imagenet](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.pth?sv=2019-12-12&st=2021-12-21T04%3A28%3A27Z&se=2028-12-22T04%3A28%3A00Z&sr=b&sp=r&sig=W5LJJ23tIdkLS7QIJJcxdTdo164i3X%2BCgdDZaAREapE%3D) datasets, these model are from [Taming Transformer](https://github.com/CompVis/taming-transformers), we provide them here for convenient. Please put them under OUTPUT/pretrained_model/taming_dvae/ .
+Besides, we release four pretrained models with learnable classifier-free on [ITHQ](https://facevcstandard.blob.core.windows.net/v-zhictang/Improved-VQ-Diffusion_model_release/ithq_learnable.pth?sv=2020-10-02&st=2022-05-30T10%3A22%3A06Z&se=2030-05-31T10%3A22%3A00Z&sr=b&sp=r&sig=GOE%2Bza02%2FPnGxYVOOPtwrTR4RA3%2F5NVgMxdW4kjaEZ8%3D), [ImageNet](https://facevcstandard.blob.core.windows.net/v-zhictang/Improved-VQ-Diffusion_model_release/imagenet_learnable.pth?sv=2020-10-02&st=2022-05-30T10%3A21%3A45Z&se=2030-05-31T10%3A21%3A00Z&sr=b&sp=r&sig=7fUZfBWhuSZopSxXd0OmS03UY6qp%2FGk4jU5Um9HXQ8M%3D), [Conceptual Caption](https://facevcstandard.blob.core.windows.net/v-zhictang/Improved-VQ-Diffusion_model_release/cc_learnable.pth?sv=2020-10-02&st=2022-05-30T10%3A20%3A39Z&se=2030-05-31T10%3A20%3A00Z&sr=b&sp=r&sig=bf7vqG4MoLGowHBjSJLjQ%2BSbFhKRtdfQzRLcxTKBosw%3D) and [MSCOCO](https://facevcstandard.blob.core.windows.net/v-zhictang/Improved-VQ-Diffusion_model_release/coco_learnable.pth?sv=2020-10-02&st=2022-05-30T10%3A21%3A22Z&se=2030-05-31T10%3A21%3A00Z&sr=b&sp=r&sig=nhTx1%2B6rK6hWR9CVGuPauKnamayHXfDu1E8RGD5%2FRw0%3D) dataset.
+
+We provide the VQVAE models on [FFHQ](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/taming_dvae/vqgan_ffhq_f16_1024.pth?sv=2019-12-12&st=2022-03-09T01%3A58%3A54Z&se=2028-03-10T01%3A58%3A00Z&sr=b&sp=r&sig=%2BQJZYWrSdiEODji%2B86B8c7QyyWS2PBQx0ivSo8PX338%3D), [OpenImages](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.pth?sv=2019-12-12&st=2022-03-09T01%3A59%3A19Z&se=2028-03-10T01%3A59%3A00Z&sr=b&sp=r&sig=T9d9A3bZVuSgGXYCYesEq9egLvMS0Gr7A4h6MCkiDcw%3D), and [ImageNet](https://facevcstandard.blob.core.windows.net/t-shuygu/release_model/VQ-Diffusion/pretrained_model/taming_dvae/vqgan_imagenet_f16_16384.pth?sv=2019-12-12&st=2022-03-09T01%3A59%3A42Z&se=2028-03-10T01%3A59%3A00Z&sr=b&sp=r&sig=H%2FQ099FqkYVec7hukfzJF3w6SS%2BpjmzUpuzjsKREoug%3D) datasets, these models are from [Taming Transformer](https://github.com/CompVis/taming-transformers), we provide them here for convenient. Please put them under OUTPUT/pretrained_model/taming_dvae/ .
+
+To support ITHQ dataset, we trained a new VQVAE model on [ITHQ](https://facevcstandard.blob.core.windows.net/v-zhictang/Improved-VQ-Diffusion_model_release/ithq_vqvae.pth?sv=2020-10-02&st=2022-05-30T15%3A17%3A18Z&se=2030-05-31T15%3A17%3A00Z&sr=b&sp=r&sig=1jVavHFPpUjDs%2FTO1V3PTezaNbPp2Nx8MxiWI7y6fEY%3D) dataset.
+
 
 ## Inference
-To generate image from given text:
+To generate image from in-the-wild text:
 ```
 from inference_VQ_Diffusion import VQ_Diffusion
-VQ_Diffusion_model = VQ_Diffusion(config='OUTPUT/pretrained_model/config_text.yaml', path='OUTPUT/pretrained_model/human_pretrained.pth')
-VQ_Diffusion_model.inference_generate_sample_with_condition("a beautiful smiling woman",truncation_rate=0.85, save_root="RESULT",batch_size=4)
-VQ_Diffusion_model.inference_generate_sample_with_condition("a woman in yellow dress",truncation_rate=0.85, save_root="RESULT",batch_size=4,fast=2) # for fast inference
+VQ_Diffusion = VQ_Diffusion(config='configs/ithq.yaml', path='OUTPUT/pretrained_model/ithq_learnable.pth')
+
+# Inference VQ-Diffusion
+VQ_Diffusion.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4)
+
+# Inference Improved VQ-Diffusion with learnable classifier-free sampling
+VQ_Diffusion.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
+VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
+
+# Inference Improved VQ-Diffusion with fast/high-quality inference
+VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=0.5) # high-quality inference, 0.5x inference speed
+VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=2) # fast inference, 2x inference speed
+# infer_speed shoule be float in [0.1, 10], larger infer_speed means faster inference and smaller infer_speed means slower inference
+
+# Inference Improved VQ-Diffusion with purity sampling
+VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, prior_rule=2, prior_weight=1) # purity sampling
+
+# Inference Improved VQ-Diffusion with learnable classifier-free sampling and fast inference
+VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0, infer_speed=2) # classifier-free guidance and fast inference
 ```
-You may change human_pretrained.pth to other pretrained model to test different text.
+
+To generate image from given text on MSCOCO/CUB/CC datasets:
+```
+from inference_VQ_Diffusion import VQ_Diffusion
+VQ_Diffusion_model = VQ_Diffusion(config='OUTPUT/pretrained_model/config_text.yaml', path='OUTPUT/pretrained_model/coco_learnable.pth')
+
+### Inference VQ-Diffusion ###
+VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=1.0, save_root="RESULT", batch_size=4)
+
+### Inference Improved VQ-Diffusion with classifier-free sampling ###
+VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=3.0)
+```
+You may change coco_learnable.pth to other pretrained model to test different text.
 
 To generate image from given ImageNet class label:
 ```
+### Inference VQ-Diffusion ###
+
 from inference_VQ_Diffusion import VQ_Diffusion
 VQ_Diffusion_model = VQ_Diffusion(config='OUTPUT/pretrained_model/config_imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_pretrained.pth')
 VQ_Diffusion_model.inference_generate_sample_with_class(407,truncation_rate=0.86, save_root="RESULT",batch_size=4)
+
+
+### Inference Improved VQ-Diffusion with classifier-free sampling ###
+
+from inference_VQ_Diffusion import VQ_Diffusion
+VQ_Diffusion = VQ_Diffusion(config='configs/imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_learnable.pth', imagenet_cf=True)
+VQ_Diffusion.inference_generate_sample_with_class(493, truncation_rate=0.94, save_root="RESULT", batch_size=8, guidance_scale=1.5)
 ```
 
 ## Training
@@ -119,6 +161,11 @@ python running_command/run_train_imagenet.py
 Train unconditional generation on FFHQ dataset:
 ```
 python running_command/run_train_ffhq.py
+```
+
+Fine-tune Text2Image generation on MSCOCO dataset with learnable classifier-free:
+```
+python running_command/run_tune_coco.py
 ```
 
 ## Cite VQ-Diffusion

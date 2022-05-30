@@ -78,6 +78,8 @@ class DiffusionTransformer(nn.Module):
         auxiliary_loss_weight=0,
         adaptive_auxiliary_loss=False,
         mask_weight=[1,1],
+
+        learnable_cf=False,
     ):
         super().__init__()
 
@@ -143,6 +145,29 @@ class DiffusionTransformer(nn.Module):
         self.register_buffer('Lt_count', torch.zeros(self.num_timesteps))
         self.zero_vector = None
 
+        self.empty_text_embed = torch.nn.Parameter(torch.randn(size=(77, 512), requires_grad=True, dtype=torch.float64))
+
+        self.prior_rule = 0    # inference rule: 0 for VQ-Diffusion v1, 1 for only high-quality inference, 2 for purity prior
+        self.prior_ps = 1024   # max number to sample per step
+        self.prior_weight = 0  # probability adjust parameter, 'r' in Equation.11 of Improved VQ-Diffusion
+
+        self.update_n_sample()
+        
+        self.learnable_cf = learnable_cf
+    
+
+    def update_n_sample(self):
+        if self.num_timesteps == 100:
+            if self.prior_ps <= 10:
+                self.n_sample = [1, 6] + [11, 10, 10] * 32 + [11, 15]
+            else:
+                self.n_sample = [1, 10] + [11, 10, 10] * 32 + [11, 11]
+        elif self.num_timesteps == 50:
+            self.n_sample = [10] + [21, 20] * 24 + [30]
+        elif self.num_timesteps == 25:
+            self.n_sample = [21] + [41] * 23 + [60]
+        elif self.num_timesteps == 10:
+            self.n_sample = [69] + [102] * 8 + [139]
 
     def multinomial_kl(self, log_prob1, log_prob2):   # compute KL loss on log_prob
         kl = (log_prob1.exp() * (log_prob1 - log_prob2)).sum(dim=1)
@@ -239,20 +264,63 @@ class DiffusionTransformer(nn.Module):
 
     def p_pred(self, log_x, cond_emb, t):             # if x0, first p(x0|xt), than sum(q(xt-1|xt,x0)*p(x0|xt))
         if self.parametrization == 'x0':
-            log_x_recon = self.predict_start(log_x, cond_emb, t)
+            log_x_recon = self.cf_predict_start(log_x, cond_emb, t)
             log_model_pred = self.q_posterior(
                 log_x_start=log_x_recon, log_x_t=log_x, t=t)
         elif self.parametrization == 'direct':
             log_model_pred = self.predict_start(log_x, cond_emb, t)
         else:
             raise ValueError
-        return log_model_pred
+        return log_model_pred, log_x_recon
 
     @torch.no_grad()
-    def p_sample(self, log_x, cond_emb, t):               # sample q(xt-1) for next step from  xt, actually is p(xt-1|xt)
-        model_log_prob = self.p_pred(log_x, cond_emb, t)
-        out = self.log_sample_categorical(model_log_prob)
-        return out
+    def p_sample(self, log_x, cond_emb, t, sampled, to_sample):               # sample q(xt-1) for next step from  xt, actually is p(xt-1|xt)
+        model_log_prob, log_x_recon = self.p_pred(log_x, cond_emb, t)
+
+        max_sample_per_step = self.prior_ps  # max number to sample per step
+        if t[0] > 0 and self.prior_rule > 0: # prior_rule: 0 for VQ-Diffusion v1, 1 for only high-quality inference, 2 for purity prior
+            log_x_idx = log_onehot_to_index(log_x)
+
+            if self.prior_rule == 1:
+                score = torch.ones((log_x.shape[0], log_x.shape[2])).to(log_x.device)
+            elif self.prior_rule == 2:
+                score = torch.exp(log_x_recon).max(dim=1).values.clamp(0, 1)
+                score /= (score.max(dim=1, keepdim=True).values + 1e-10)
+
+            if self.prior_rule != 1 and self.prior_weight > 0:
+                # probability adjust parameter, prior_weight: 'r' in Equation.11 of Improved VQ-Diffusion
+                prob = ((1 + score * self.prior_weight).unsqueeze(1) * log_x_recon).softmax(dim=1)
+                prob = prob.log().clamp(-70, 0)
+            else:
+                prob = log_x_recon
+
+            out = self.log_sample_categorical(prob)
+            out_idx = log_onehot_to_index(out)
+
+            out2_idx = log_x_idx.clone()
+            _score = score.clone()
+            if _score.sum() < 1e-6:
+                _score += 1
+            _score[log_x_idx != self.num_classes - 1] = 0
+
+            for i in range(log_x.shape[0]):
+                n_sample = min(to_sample - sampled[i], max_sample_per_step)
+                if to_sample - sampled[i] - n_sample == 1:
+                    n_sample = to_sample - sampled[i]
+                if n_sample <= 0:
+                    continue
+                sel = torch.multinomial(_score[i], n_sample)
+                out2_idx[i][sel] = out_idx[i][sel]
+                sampled[i] += ((out2_idx[i] != self.num_classes - 1).sum() - (log_x_idx[i] != self.num_classes - 1).sum()).item()
+
+            out = index_to_log_onehot(out2_idx, self.num_classes)
+        else:
+            # Gumbel sample
+            out = self.log_sample_categorical(model_log_prob)
+            sampled = [1024] * log_x.shape[0]
+
+        return out, sampled
+
 
     def log_sample_categorical(self, logits):           # use gumbel to sample onehot vector from log probability
         uniform = torch.rand_like(logits)
@@ -441,6 +509,9 @@ class DiffusionTransformer(nn.Module):
             with autocast(enabled=False):
                 with torch.no_grad():
                     cond_emb = self.condition_emb(input['condition_token']) # B x Ld x D   #256*1024
+                if self.learnable_cf:
+                    is_empty_text = torch.logical_not(input['condition_mask'][:, 2]).unsqueeze(1).unsqueeze(2).repeat(1, 77, 512)
+                    cond_emb = torch.where(is_empty_text, self.empty_text_embed.unsqueeze(0).repeat(cond_emb.shape[0], 1, 1), cond_emb.type_as(self.empty_text_embed))
                 cond_emb = cond_emb.float()
         else: # share condition embeding with content
             if input.get('condition_embed_token') == None:
@@ -516,7 +587,9 @@ class DiffusionTransformer(nn.Module):
             with torch.no_grad():
                 for diffusion_index in range(start_step-1, -1, -1):
                     t = torch.full((batch_size,), diffusion_index, device=device, dtype=torch.long)
-                    log_z = self.p_sample(log_z, cond_emb, t)     # log_z is log_onehot
+                    sampled = [0] * log_z.shape[0]
+                    while min(sampled) < self.n_sample[diffusion_index]:
+                        log_z, sampled = self.p_sample(log_z, cond_emb, t, sampled, self.n_sample[diffusion_index])     # log_z is log_onehot
 
         else:
             t = torch.full((batch_size,), start_step-1, device=device, dtype=torch.long)
@@ -589,7 +662,7 @@ class DiffusionTransformer(nn.Module):
             for diffusion_index in diffusion_list:
                 
                 t = torch.full((batch_size,), diffusion_index, device=device, dtype=torch.long)
-                log_x_recon = self.predict_start(log_z, cond_emb, t)
+                log_x_recon = self.cf_predict_start(log_z, cond_emb, t)
                 if diffusion_index > skip_step:
                     model_log_prob = self.q_posterior(log_x_start=log_x_recon, log_x_t=log_z, t=t-skip_step)
                 else:

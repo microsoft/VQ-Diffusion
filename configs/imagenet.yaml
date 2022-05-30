@@ -106,6 +106,7 @@ dataloader:
         data_root: /mnt/blob/datasets/ImageNet-2012
         phase: train                                          ###########
         input_file: ILSVRC2012_name_train.txt                   ###########
+        drop_caption_rate: 0.0
         im_preprocessor_config:
           target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
           params:

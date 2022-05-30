@@ -1,0 +1,47 @@
+model:
+  params:
+    decoder_config:
+      params:
+        attn_resolutions:
+        - - 32
+          - 32
+        ch: 64
+        ch_mult:
+        - 1
+        - 2
+        - 4
+        - 8
+        dropout: 0.0
+        num_res_blocks: 2
+        out_ch: 3
+        resolution:
+        - 256
+        - 256
+        z_channels: 256
+      target: image_synthesis.modeling.codecs.image_codec.patch_vqgan.Decoder
+    embed_dim: 128
+    encoder_config:
+      params:
+        activate_output: false
+        attn_resolutions:
+        - - 32
+          - 32
+        ch: 64
+        ch_mult:
+        - 1
+        - 2
+        - 4
+        - 8
+        dropout: 0.0
+        in_channels: 3
+        num_res_blocks: 2
+        out_ch: 3
+        resolution:
+        - 256
+        - 256
+        z_channels: 256
+      target: image_synthesis.modeling.codecs.image_codec.patch_vqgan.Encoder
+    n_embed: 4096
+    quantizer_type: EMAVQ
+    trainable: true
+  target: image_synthesis.modeling.codecs.image_codec.patch_vqgan.PatchVQGAN

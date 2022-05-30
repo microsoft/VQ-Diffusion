@@ -21,8 +21,8 @@ from image_synthesis.modeling.build import build_model
 from image_synthesis.utils.misc import get_model_parameters_info
 
 class VQ_Diffusion():
-    def __init__(self, config, path):
-        self.info = self.get_model(ema=True, model_path=path, config_path=config)
+    def __init__(self, config, path, learnable_cf=False, imagenet_cf=False):
+        self.info = self.get_model(ema=True, model_path=path, config_path=config, learnable_cf=learnable_cf, imagenet_cf=imagenet_cf)
         self.model = self.info['model']
         self.epoch = self.info['epoch']
         self.model_name = self.info['model_name']
@@ -31,13 +31,20 @@ class VQ_Diffusion():
         for param in self.model.parameters(): 
             param.requires_grad=False
 
-    def get_model(self, ema, model_path, config_path):
+    def get_model(self, ema, model_path, config_path, learnable_cf, imagenet_cf):
         if 'OUTPUT' in model_path: # pretrained model
             model_name = model_path.split(os.path.sep)[-3]
         else: 
             model_name = os.path.basename(config_path).replace('.yaml', '')
 
         config = load_yaml_config(config_path)
+
+        config['model']['params']['learnable_cf'] = learnable_cf
+        config['model']['params']['diffusion_config']['params']['learnable_cf'] = learnable_cf
+
+        if imagenet_cf:
+            config['model']['params']['diffusion_config']['params']['transformer_config']['params']['class_number'] = 1001
+
         model = build_model(config)
         model_parameters = get_model_parameters_info(model)
         
@@ -63,8 +70,10 @@ class VQ_Diffusion():
         
         return {'model': model, 'epoch': epoch, 'model_name': model_name, 'parameter': model_parameters}
 
-    def inference_generate_sample_with_class(self, text, truncation_rate, save_root, batch_size,fast=False):
+    def inference_generate_sample_with_class(self, text, truncation_rate, save_root, batch_size, infer_speed=False, guidance_scale=1.0):
         os.makedirs(save_root, exist_ok=True)
+
+        self.model.guidance_scale = guidance_scale
 
         data_i = {}
         data_i['label'] = [text]
@@ -95,8 +104,12 @@ class VQ_Diffusion():
             im = Image.fromarray(content[b])
             im.save(save_path)
 
-    def inference_generate_sample_with_condition(self, text, truncation_rate, save_root, batch_size,fast=False):
+    def inference_generate_sample_with_condition(self, text, truncation_rate, save_root, batch_size, infer_speed=False, guidance_scale=1.0, prior_rule=0, prior_weight=0):
         os.makedirs(save_root, exist_ok=True)
+
+        self.model.guidance_scale = guidance_scale
+        self.model.transformer.prior_rule = prior_rule      # inference rule: 0 for VQ-Diffusion v1, 1 for only high-quality inference, 2 for purity prior
+        self.model.transformer.prior_weight = prior_weight  # probability adjust parameter, 'r' in Equation.11 of Improved VQ-Diffusion
 
         data_i = {}
         data_i['text'] = [text]
@@ -107,8 +120,8 @@ class VQ_Diffusion():
         save_root_ = os.path.join(save_root, str_cond)
         os.makedirs(save_root_, exist_ok=True)
 
-        if fast != False:
-            add_string = 'r,fast'+str(fast-1)
+        if infer_speed != False:
+            add_string = 'r,time'+str(infer_speed)
         else:
             add_string = 'r'
         with torch.no_grad():
@@ -133,16 +146,25 @@ class VQ_Diffusion():
 
 
 if __name__ == '__main__':
-    # VQ_Diffusion = VQ_Diffusion(config='OUTPUT/pretrained_model/config_text.yaml', path='OUTPUT/pretrained_model/human_pretrained.pth')
-    # VQ_Diffusion.inference_generate_sample_with_condition("a man with beard",truncation_rate=0.86, save_root="RESULT",batch_size=2,fast=2)  # fast is a int from 2 to 10
-    # VQ_Diffusion.inference_generate_sample_with_condition("a beautiful smiling woman",truncation_rate=0.85, save_root="RESULT",batch_size=8)
+    VQ_Diffusion = VQ_Diffusion(config='configs/ithq.yaml', path='OUTPUT/pretrained_model/ithq_learnable.pth')
+    VQ_Diffusion.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
+    #VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
 
-    VQ_Diffusion = VQ_Diffusion(config='OUTPUT/pretrained_model/config_imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_pretrained.pth')
-    VQ_Diffusion.inference_generate_sample_with_class(493,truncation_rate=0.86, save_root="RESULT",batch_size=8)
- 
+    #VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=0.5) # high-quality inference, 0.5x inference speed
+    #VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=2) # fast inference, 2x inference speed
+    # infer_speed shoule be float in [0.1, 10], larger infer_speed means faster inference and smaller infer_speed means slower inference
+
+    #VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, prior_rule=2, prior_weight=1) # purity sampling
+
+    #VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0, infer_speed=2) # classifier-free guidance and fast inference
 
 
 
+    #VQ_Diffusion_model = VQ_Diffusion(config='OUTPUT/pretrained_model/config_text.yaml', path='OUTPUT/pretrained_model/coco_learnable.pth')
+    #VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=3.0)
+    #VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=1.0, save_root="RESULT", batch_size=4)
 
 
 
+    #VQ_Diffusion = VQ_Diffusion(config='configs/imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_learnable.pth', imagenet_cf=True)
+    #VQ_Diffusion.inference_generate_sample_with_class(493, truncation_rate=0.94, save_root="RESULT", batch_size=8, guidance_scale=1.5)

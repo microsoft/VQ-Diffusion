@@ -143,9 +143,14 @@ class AdaLayerNorm(nn.Module):
         self.silu = nn.SiLU()
         self.linear = nn.Linear(n_embd, n_embd*2)
         self.layernorm = nn.LayerNorm(n_embd, elementwise_affine=False)
+        self.diff_step = diffusion_step
 
     def forward(self, x, timestep):
-        emb = self.linear(self.silu(self.emb(timestep))).unsqueeze(1)
+        if timestep[0] >= self.diff_step:
+            _emb = self.emb.weight.mean(dim=0, keepdim=True).repeat(len(timestep), 1)
+            emb = self.linear(self.silu(_emb)).unsqueeze(1)
+        else:
+            emb = self.linear(self.silu(self.emb(timestep))).unsqueeze(1)
         scale, shift = torch.chunk(emb, 2, dim=2)
         x = self.layernorm(x) * (1 + scale) + shift
         return x

@@ -6,15 +6,11 @@ model:
     condition_info: {key: text}
     content_codec_config: 
     # target: image_synthesis.modeling.codecs.image_codec.openai_dvae.OpenAIDiscreteVAE
-      target: image_synthesis.modeling.codecs.image_codec.taming_gumbel_vqvae.TamingGumbelVQVAE
+    # target: image_synthesis.modeling.codecs.image_codec.taming_gumbel_vqvae.TamingGumbelVQVAE
+      target: image_synthesis.modeling.codecs.image_codec.ema_vqvae.PatchVQVAE
       params:
         trainable: False
         token_shape: [32, 32]
-        config_path: 'OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages.yaml'
-        ckpt_path: 'OUTPUT/pretrained_model/taming_dvae/taming_f8_8192_openimages_last.pth'
-        num_tokens: 8192
-        quantize_number: 2887
-        mapping_path: './help_folder/statistics/taming_vqvae_2887.pt'
         # return_logits: True
     condition_codec_config:
       target: image_synthesis.modeling.codecs.text_codec.tokenize.Tokenize
@@ -42,11 +38,11 @@ model:
           target: image_synthesis.modeling.transformers.transformer_utils.Text2ImageTransformer
           params:
             attn_type: 'selfcross'
-            n_layer: 19
+            n_layer: 36
             condition_seq_len: 77    ###### 77 for clip and 256 for dalle
             content_seq_len: 1024  # 32 x 32
             content_spatial_size: [32, 32]
-            n_embd: 1024 # the dim of embedding dims
+            n_embd: 1408 # the dim of embedding dims
             condition_dim: 512
             n_head: 16 
             attn_pdrop: 0.0
@@ -54,6 +50,7 @@ model:
             block_activate: GELU2
             timestep_type: 'adalayernorm'    # adainsnorm or adalayernorm and abs
             mlp_hidden_times: 4
+            checkpoint: True
         condition_emb_config:
           target: image_synthesis.modeling.embeddings.clip_text_embedding.CLIPTextEmbedding
           params:
@@ -67,19 +64,20 @@ model:
         content_emb_config:
           target: image_synthesis.modeling.embeddings.dalle_mask_image_embedding.DalleMaskImageEmbedding
           params:
-            num_embed: 2887
+            num_embed: 4096
             spatial_size: !!python/tuple [32, 32]
-            embed_dim: 1024
+            embed_dim: 1408
             trainable: True
             pos_emb_type: embedding
 
 solver:
   base_lr: 3.0e-6
   adjust_lr: none # not adjust lr according to total batch_size
-  max_epochs: 100
+  max_epochs: 50
   save_epochs: 1
-  validation_epochs: 99
-  sample_iterations: epoch  # epoch #30000      # how many iterations to perform sampling once ?
+  save_iterations: 1000
+  validation_epochs: 20
+  sample_iterations: 2000  # epoch #30000      # how many iterations to perform sampling once ?
   print_specific_things: True
 
   # config for ema
@@ -111,39 +109,36 @@ solver:
       target: image_synthesis.engine.lr_scheduler.ReduceLROnPlateauWithWarmup
       params:
         factor: 0.5
-        patience: 60000
+        patience: 50000
         min_lr: 1.0e-6
-        threshold: 1.0e-1
+        threshold: 5.0e-2
         threshold_mode: rel
-        warmup_lr: 4.5e-4 # the lr to be touched after warmup
-        warmup: 5000 
+        warmup_lr: 1.0e-4 # the lr to be touched after warmup   4.5e-4 for train from scratch
+        warmup: 7000 
 
 dataloader:
   # data_root: data
-  data_root: DATASET
-  batch_size: 4
-  num_workers: 1
+  data_root: dataset
+  batch_size: 8
+  num_workers: 8
   train_datasets: # a list of configures, so we can combine several schedulers
-    - target: image_synthesis.data.zip_dataset.ZipImageTextDataset
+    - target: image_synthesis.data.cub200_dataset.Cub200Dataset
       params:
-        zip_root_path: gcc/data
-        zip_name_list: CC15M
-        json_file: gcc/Filter_CC15M.json
-        drop_caption_rate: 0.0
+        data_root: dataset/CUB-200
+        phase: train
         im_preprocessor_config:
           target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
           params:
             size: 256
             phase: train
   validation_datasets:
-    - target: image_synthesis.data.tsv_dataset.TSVImageTextDataset
+    - target: image_synthesis.data.cub200_dataset.Cub200Dataset
       params:
-        name: conceptualcaption/val
-        image_tsv_file: ['gcc-val-image.tsv']
-        text_tsv_file: ['gcc-val-text.tsv']
-        text_format: json
+        data_root: dataset/CUB-200
+        phase: test
         im_preprocessor_config:
           target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
           params:
             size: 256
-            phase: val
+            phase: train
+

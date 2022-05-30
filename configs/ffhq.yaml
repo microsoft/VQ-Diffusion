@@ -95,6 +95,7 @@ dataloader:
     - target: image_synthesis.data.ffhq_dataset.FFHQDataset
       params:
         data_root: /mnt/blob/datasets/FFHQ/image256_PIL
+        drop_caption_rate: 0.0
         im_preprocessor_config:
           target: image_synthesis.data.utils.image_preprocessor.DalleTransformerPreprocessor
           params:
