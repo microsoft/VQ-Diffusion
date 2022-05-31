@@ -90,25 +90,29 @@ To support ITHQ dataset, we trained a new VQVAE model on [ITHQ](https://facevcst
 To generate image from in-the-wild text:
 ```
 from inference_VQ_Diffusion import VQ_Diffusion
-VQ_Diffusion = VQ_Diffusion(config='configs/ithq.yaml', path='OUTPUT/pretrained_model/ithq_learnable.pth')
+VQ_Diffusion_model = VQ_Diffusion(config='configs/ithq.yaml', path='OUTPUT/pretrained_model/ithq_learnable.pth')
 
 # Inference VQ-Diffusion
-VQ_Diffusion.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4)
+VQ_Diffusion_model.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=0.86, save_root="RESULT", batch_size=4)
+
+# Inference Improved VQ-Diffusion with non-learnable classifier-free sampling
+VQ_Diffusion_model.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0, learnable_cf=False)
+VQ_Diffusion_model.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0, learnable_cf=False)
 
 # Inference Improved VQ-Diffusion with learnable classifier-free sampling
-VQ_Diffusion.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
-VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
+VQ_Diffusion_model.inference_generate_sample_with_condition("teddy bear playing in the pool", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
+VQ_Diffusion_model.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0)
 
 # Inference Improved VQ-Diffusion with fast/high-quality inference
-VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=0.5) # high-quality inference, 0.5x inference speed
-VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=2) # fast inference, 2x inference speed
+VQ_Diffusion_model.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=0.5) # high-quality inference, 0.5x inference speed
+VQ_Diffusion_model.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, infer_speed=2) # fast inference, 2x inference speed
 # infer_speed shoule be float in [0.1, 10], larger infer_speed means faster inference and smaller infer_speed means slower inference
 
 # Inference Improved VQ-Diffusion with purity sampling
-VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, prior_rule=2, prior_weight=1) # purity sampling
+VQ_Diffusion_model.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=0.86, save_root="RESULT", batch_size=4, prior_rule=2, prior_weight=1) # purity sampling
 
-# Inference Improved VQ-Diffusion with learnable classifier-free sampling and fast inference
-VQ_Diffusion.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0, infer_speed=2) # classifier-free guidance and fast inference
+# Inference Improved VQ-Diffusion with both learnable classifier-free sampling and fast inference
+VQ_Diffusion_model.inference_generate_sample_with_condition("a long exposure photo of waterfall", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=5.0, infer_speed=2) # classifier-free guidance and fast inference
 ```
 
 To generate image from given text on MSCOCO/CUB/CC datasets:
@@ -116,28 +120,26 @@ To generate image from given text on MSCOCO/CUB/CC datasets:
 from inference_VQ_Diffusion import VQ_Diffusion
 VQ_Diffusion_model = VQ_Diffusion(config='OUTPUT/pretrained_model/config_text.yaml', path='OUTPUT/pretrained_model/coco_learnable.pth')
 
-### Inference VQ-Diffusion ###
-VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=1.0, save_root="RESULT", batch_size=4)
+# Inference VQ-Diffusion
+VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=0.86, save_root="RESULT", batch_size=4)
 
-### Inference Improved VQ-Diffusion with classifier-free sampling ###
+# Inference Improved VQ-Diffusion with learnable classifier-free sampling
 VQ_Diffusion_model.inference_generate_sample_with_condition("A group of elephants walking in muddy water", truncation_rate=1.0, save_root="RESULT", batch_size=4, guidance_scale=3.0)
 ```
 You may change coco_learnable.pth to other pretrained model to test different text.
 
 To generate image from given ImageNet class label:
 ```
-### Inference VQ-Diffusion ###
-
 from inference_VQ_Diffusion import VQ_Diffusion
+
+# Inference VQ-Diffusion
 VQ_Diffusion_model = VQ_Diffusion(config='OUTPUT/pretrained_model/config_imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_pretrained.pth')
-VQ_Diffusion_model.inference_generate_sample_with_class(407,truncation_rate=0.86, save_root="RESULT",batch_size=4)
+VQ_Diffusion_model.inference_generate_sample_with_class(407, truncation_rate=0.86, save_root="RESULT", batch_size=4)
 
 
-### Inference Improved VQ-Diffusion with classifier-free sampling ###
-
-from inference_VQ_Diffusion import VQ_Diffusion
-VQ_Diffusion = VQ_Diffusion(config='configs/imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_learnable.pth', imagenet_cf=True)
-VQ_Diffusion.inference_generate_sample_with_class(493, truncation_rate=0.94, save_root="RESULT", batch_size=8, guidance_scale=1.5)
+# Inference Improved VQ-Diffusion with classifier-free sampling
+VQ_Diffusion_model = VQ_Diffusion(config='configs/imagenet.yaml', path='OUTPUT/pretrained_model/imagenet_learnable.pth', imagenet_cf=True)
+VQ_Diffusion_model.inference_generate_sample_with_class(407, truncation_rate=0.94, save_root="RESULT", batch_size=8, guidance_scale=1.5)
 ```
 
 ## Training
