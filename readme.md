@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the official repo for the paper: [Vector Quantized Diffusion Model for Text-to-Image Synthesis](https://arxiv.org/pdf/2111.14822.pdf) and [Improved Vector Quantized Diffusion Models]().
+This is the official repo for the paper: [Vector Quantized Diffusion Model for Text-to-Image Synthesis](https://arxiv.org/pdf/2111.14822.pdf) and [Improved Vector Quantized Diffusion Models](https://arxiv.org/pdf/2205.16007.pdf).
 
 The code is the same as https://github.com/cientgu/VQ-Diffusion, some issues that have been raised can refer to it.
 
