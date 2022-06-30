@@ -145,7 +145,8 @@ class DiffusionTransformer(nn.Module):
         self.register_buffer('Lt_count', torch.zeros(self.num_timesteps))
         self.zero_vector = None
 
-        self.empty_text_embed = torch.nn.Parameter(torch.randn(size=(77, 512), requires_grad=True, dtype=torch.float64))
+        if learnable_cf:
+            self.empty_text_embed = torch.nn.Parameter(torch.randn(size=(77, 512), requires_grad=True, dtype=torch.float64))
 
         self.prior_rule = 0    # inference rule: 0 for VQ-Diffusion v1, 1 for only high-quality inference, 2 for purity prior
         self.prior_ps = 1024   # max number to sample per step
@@ -227,6 +228,9 @@ class DiffusionTransformer(nn.Module):
         log_pred = torch.clamp(log_pred, -70, 0)
 
         return log_pred
+    
+    def cf_predict_start(self, log_x_t, cond_emb, t):
+        return self.predict_start(log_x_t, cond_emb, t)
 
     def q_posterior(self, log_x_start, log_x_t, t):            # p_theta(xt_1|xt) = sum(q(xt-1|xt,x0')*p(x0'))
         # notice that log_x_t is onehot
