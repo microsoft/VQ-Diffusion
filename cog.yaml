@@ -1,0 +1,24 @@
+build:
+  cuda: "11.3"
+  gpu: true
+  python_version: "3.8"
+  system_packages:
+    - "libgl1-mesa-glx"
+    - "libglib2.0-0"
+  python_packages:
+    - "numpy==1.21.1"
+    - "ipython==7.21.0"
+    - "pytorch-lightning==1.6.4"
+    - "omegaconf==2.2.2"
+    - "tensorboard==2.2.0"
+    - "lmdb==1.3.0"
+    - "tqdm==4.64.0"
+    - "ftfy==6.1.1"
+    - "einops==0.4.1"
+    - "opencv-python==4.5.5.64"
+    - "regex==2022.6.2"
+    - "git+https://github.com/openai/DALL-E.git"
+  run:
+    - pip install torch==1.10.0+cu113 torchvision==0.11.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+
+predict: "predict.py:Predictor"
