@@ -278,11 +278,11 @@ class DiffusionTransformer(nn.Module):
         return log_model_pred, log_x_recon
 
     @torch.no_grad()
-    def p_sample(self, log_x, cond_emb, t, sampled, to_sample):               # sample q(xt-1) for next step from  xt, actually is p(xt-1|xt)
+    def p_sample(self, log_x, cond_emb, t, sampled=None, to_sample=None):               # sample q(xt-1) for next step from  xt, actually is p(xt-1|xt)
         model_log_prob, log_x_recon = self.p_pred(log_x, cond_emb, t)
 
         max_sample_per_step = self.prior_ps  # max number to sample per step
-        if t[0] > 0 and self.prior_rule > 0: # prior_rule: 0 for VQ-Diffusion v1, 1 for only high-quality inference, 2 for purity prior
+        if t[0] > 0 and self.prior_rule > 0 and to_sample is not None: # prior_rule: 0 for VQ-Diffusion v1, 1 for only high-quality inference, 2 for purity prior
             log_x_idx = log_onehot_to_index(log_x)
 
             if self.prior_rule == 1:
@@ -323,8 +323,10 @@ class DiffusionTransformer(nn.Module):
             out = self.log_sample_categorical(model_log_prob)
             sampled = [1024] * log_x.shape[0]
 
-        return out, sampled
-
+        if to_sample is not None:
+            return out, sampled
+        else:
+            return out
 
     def log_sample_categorical(self, logits):           # use gumbel to sample onehot vector from log probability
         uniform = torch.rand_like(logits)
