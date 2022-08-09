@@ -49,12 +49,6 @@ class Predictor(BasePredictor):
             default="None",
             description="Choose the ImageNet label. Valid when generation_type is set to ImageNet class label.",
         ),
-        num_images: int = Input(
-            default=4,
-            ge=1,
-            le=8,
-            description="Number of generated images.",
-        ),
         truncation_rate: float = Input(
             default=0.86,
             ge=0.0,
@@ -66,6 +60,7 @@ class Predictor(BasePredictor):
             description="Improved VQ-Diffusion with learnable classifier-free sampling.",
         ),
     ) -> List[ModelOutput]:
+        num_images = 4
         if generation_type == "ImageNet class label":
             assert not image_class == "None", "Please specify a class label."
         else:
