@@ -12,6 +12,10 @@ The code is the same as https://github.com/cientgu/VQ-Diffusion, some issues tha
 
 <img src='figures/framework.png' width='600'>
 
+## Web Demo
+Try Replicate web demo here [![Replicate](https://replicate.com/microsoft/vq-diffusion/badge)](https://replicate.com/microsoft/vq-diffusion)
+
+
 ## Requirements
 
 We suggest to use the [docker](https://hub.docker.com/layers/164588520/cientgu/pytorch1.9.0/latest/images/sha256-e4e8694817152b4d9295242044f2e0f7f35f41cf7055ab2942a768acc42c7858?context=repo). Also, you may run:
