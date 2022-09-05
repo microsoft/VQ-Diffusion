@@ -48,7 +48,9 @@ class VQ_Diffusion():
         print(model_parameters)
         if os.path.exists(model_path):
             ckpt = torch.load(model_path, map_location="cpu")
-
+        else:
+            print("Model path: {} does not exist.".format(model_path))
+            exit(0)
         if 'last_epoch' in ckpt:
             epoch = ckpt['last_epoch']
         elif 'epoch' in ckpt:
