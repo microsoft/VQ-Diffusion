@@ -12,6 +12,34 @@ The code is the same as https://github.com/cientgu/VQ-Diffusion, some issues tha
 
 <img src='figures/framework.png' width='600'>
 
+## Integration with 🤗 Diffusers library
+
+VQ-Diffusion is now also available in 🧨 Diffusers and accesible via the [VQDiffusionPipeline](https://huggingface.co/docs/diffusers/api/pipelines/vq_diffusion).
+Diffusers allows you to test VQ-Diffusion in just a couple lines of code.
+
+You can install diffusers as follows:
+
+```
+pip install diffusers torch accelerate transformers
+```
+
+And then try out the model with just a couple lines of code:
+
+```python
+import torch
+from diffusers import VQDiffusionPipeline
+
+pipeline = VQDiffusionPipeline.from_pretrained("microsoft/vq-diffusion-ithq", torch_dtype=torch.float16, revision="fp16")
+pipeline = pipeline.to("cuda")
+
+image = pipeline("teddy bear playing in the pool", truncation_rate=0.86).images[0]
+
+# save image
+image.save("./teddy_bear.png")
+```
+
+You can find the model card of the **ITHQ** checkpoint [here](https://huggingface.co/microsoft/vq-diffusion-ithq).
+
 ## Requirements
 
 We suggest to use the [docker](https://hub.docker.com/layers/164588520/cientgu/pytorch1.9.0/latest/images/sha256-e4e8694817152b4d9295242044f2e0f7f35f41cf7055ab2942a768acc42c7858?context=repo). Also, you may run:
