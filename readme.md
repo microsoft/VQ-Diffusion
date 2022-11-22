@@ -32,7 +32,7 @@ from diffusers import VQDiffusionPipeline
 pipeline = VQDiffusionPipeline.from_pretrained("microsoft/vq-diffusion-ithq", torch_dtype=torch.float16, revision="fp16")
 pipeline = pipeline.to("cuda")
 
-image = pipeline("teddy bear playing in the pool", truncation_rate=0.86).images[0]
+image = pipeline("teddy bear playing in the pool").images[0]
 
 # save image
 image.save("./teddy_bear.png")
