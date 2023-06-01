@@ -29,7 +29,7 @@ And then try out the model with just a couple lines of code:
 import torch
 from diffusers import VQDiffusionPipeline
 
-pipeline = VQDiffusionPipeline.from_pretrained("microsoft/vq-diffusion-ithq", torch_dtype=torch.float16, revision="fp16")
+pipeline = VQDiffusionPipeline.from_pretrained("microsoft/vq-diffusion-ithq", torch_dtype=torch.float16)
 pipeline = pipeline.to("cuda")
 
 image = pipeline("teddy bear playing in the pool").images[0]
